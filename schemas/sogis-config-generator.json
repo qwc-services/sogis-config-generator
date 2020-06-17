@@ -1,0 +1,375 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://git.sourcepole.ch/ktso/somap/-/raw/master/config-generator/schemas/sogis-config-generator.json",
+  "title": "SO!GIS Config generator",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "title": "JSON Schema",
+      "description": "Reference to JSON schema of this config",
+      "type": "string",
+      "format": "uri",
+      "default": "https://git.sourcepole.ch/ktso/somap/-/raw/master/config-generator/schemas/sogis-config-generator.json"
+    },
+    "service": {
+      "title": "Service name",
+      "type": "string",
+      "const": "config-generator"
+    },
+    "config": {
+      "title": "Config options for Config generator",
+      "type": "object",
+      "properties": {
+        "config_db_url": {
+          "description": "Connection URL for configuration database. Example: postgresql:///?service=soconfig_services",
+          "type": "string",
+          "format": "uri"
+        },
+        "config_path": {
+          "description": "Target path for service configs and permissions. Example: /etc/qwc_service/",
+          "type": "string"
+        },
+        "legend_images_path": {
+          "description": "Target path for custom legend images. Example: /qgs-resources/",
+          "type": "string"
+        },
+        "default_qgis_server_url": {
+          "description": "Default QGIS Server URL used for OGC, FeatureInfo an Legend service configs if not specified there. Example: http://sogis-qgis-server/ows/",
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "config_db_url",
+        "config_path",
+        "legend_images_path"
+      ]
+    },
+    "services": {
+      "title": "Service configs",
+      "description": "Service specific config options for generating their service configs",
+      "type": "array",
+      "items": {
+        "description": "Generator config for a service",
+        "oneOf": [
+          {"$ref": "#/definitions/common_service"},
+          {"$ref": "#/definitions/mapViewer"},
+          {"$ref": "#/definitions/ogc"}
+        ]
+      }
+    },
+    "qgs_writer": {
+      "title": "QGSWriter config",
+      "description": "Config options for generating QGIS project files",
+      "type": "object",
+      "properties": {
+        "project_output_dir": {
+          "description": "Target path for QGIS project files. Example: /qgs-resources/",
+          "type": "string"
+        },
+        "default_extent": {
+          "description": "Default layer extent, in the format [xmin,ymin,xmax,ymax]. Example: [2590983, 1212806, 2646267, 1262755]",
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "default_raster_extent": {
+          "description": "Optional extent for raster layers, in the format [xmin,ymin,xmax,ymax]. Example: [2590000, 1210000, 2650000, 1270000]",
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "selection_color": {
+          "description": "Project selection color, also used for server highlighting, in the format [r,g,b,a]. Example: [255, 255, 0, 255]",
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 4,
+          "maxItems": 4
+        }
+      },
+      "required": [
+        "project_output_dir"
+      ]
+    }
+  },
+  "required": [
+    "service",
+    "config",
+    "services",
+    "qgs_writer"
+  ],
+  "definitions": {
+    "common_service": {
+      "description": "Generator config for a QWC service",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Service name",
+          "type": "string",
+          "enum": [
+            "agdi",
+            "ccc",
+            "data",
+            "dataproduct",
+            "document",
+            "elevation",
+            "featureInfo",
+            "landreg",
+            "legend",
+            "mapinfo",
+            "permalink",
+            "plotinfo",
+            "print",
+            "saml-auth",
+            "search"
+          ]
+        },
+        "config": {
+          "description": "QWC service config options (cf. its JSON schema). This is copied unmodified to the service config.",
+          "type": "object"
+        }
+      },
+      "required": [
+        "name",
+        "config"
+      ]
+    },
+    "mapViewer": {
+      "description": "Generator config for Map Viewer",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Service name",
+          "type": "string",
+          "const": "mapViewer"
+        },
+        "config": {
+          "description": "Map Viewer config options (cf. JSON schema qwc-map-viewer.json). This is copied unmodified to the service config.",
+          "type": "object"
+        },
+        "resources": {
+          "description": "Additional config for generating MapViewer resources",
+          "type": "object",
+          "properties": {
+            "qwc2_config": {
+              "description": "Additional config for QWC2 application configuration",
+              "type": "object",
+              "properties": {
+                "qwc2_config_file": {
+                  "description": "Path to QWC2 config.json file. Example: /sogis-qwc2-app/config.json",
+                  "type": "string"
+                },
+                "wmsDpi": {
+                  "description": "Optional DPI setting for WMS. Example: 96",
+                  "type": "integer"
+                },
+                "minResultsExanded": {
+                  "description": "Optional number of search results shown expanded. Example: 100",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "qwc2_config_file"
+              ]
+            },
+            "qwc2_themes": {
+              "description": "Additional config for QWC2 themes configuration",
+              "type": "object",
+              "properties": {
+                "default_theme_attribution_title": {
+                  "description": "Default theme attribution title. Example: 'Kt. Solothurn'",
+                  "type": "string"
+                },
+                "default_theme_attribution_online_resource": {
+                  "description": "Default theme attribution URL. Example: https://www.so.ch/verwaltung/bau-und-justizdepartement/amt-fuer-geoinformation/geoportal/",
+                  "type": "string",
+                  "format": "uri"
+                },
+                "default_crs": {
+                  "description": "Default CRS. Example: EPSG:2056",
+                  "type": "string"
+                },
+                "default_theme_item_bounds": {
+                  "description": "Default theme extent, in the format [xmin,ymin,xmax,ymax]. Example: [2590000, 1210000, 2650000, 1270000]",
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 4,
+                  "maxItems": 4
+                },
+                "default_layer_bounds": {
+                  "description": "Default layer extent, in the format [xmin,ymin,xmax,ymax]. Example: [2590000, 1210000, 2650000, 1270000]",
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 4,
+                  "maxItems": 4
+                },
+                "default_image_formats": {
+                  "description": "Default WMS image formats. Example: ['image/jpeg', 'image/png']",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "default_theme": {
+                  "description": "Name of default theme. Example: default",
+                  "type": "string"
+                },
+                "default_print_layout": {
+                  "description": "Name of default print layout. Example: 'A4 hoch'",
+                  "type": "string"
+                },
+                "default_scales": {
+                  "description": "Default map scales. Example: [4000000, 2000000, ..., 250, 100]",
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                "default_wms_version": {
+                  "description": "Default WMS version. Example: 1.3.0",
+                  "type": "string"
+                },
+                "default_print_resolutions": {
+                  "description": "Default print resolutions. Example: [300]",
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                "default_print_grid": {
+                  "description": "Default print grid. Example: [{s: 50000, x: 5000, y: 5000}]",
+                  "type": "array",
+                  "items": {
+                    "description": "Print grid settings for scale",
+                    "type": "object",
+                    "properties": {
+                      "s": {
+                        "description": "Print grid scale",
+                        "type": "integer"
+                      },
+                      "x": {
+                        "description": "Print grid size in x direction",
+                        "type": "integer"
+                      },
+                      "y": {
+                        "description": "Print grid size in y direction",
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "s",
+                      "x",
+                      "y"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "required": [
+            "qwc2_config"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "config"
+      ]
+    },
+    "ogc": {
+      "description": "Generator config for Data service",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Service name",
+          "type": "string",
+          "const": "ogc"
+        },
+        "config": {
+          "description": "OGC service config options (cf. JSON schema qwc-ogc-service.json). This is copied unmodified to the service config.",
+          "type": "object"
+        },
+        "resources": {
+          "description": "Additional config for generating OGC resources",
+          "wms_services": {
+            "title": "WMS services",
+            "type": "array",
+            "items": {
+              "title": "WMS service",
+              "description": "Additional config for WMS service",
+              "type": "object",
+              "properties": {
+                "name": {
+                  "description": "WMS service name",
+                  "type": "string"
+                },
+                "online_resources": {
+                  "description": "Custom OnlineResources shown in GetCapabilities",
+                  "type": "object",
+                  "properties": {
+                    "service": {
+                      "description": "Default public base URL for OnlineResources",
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "feature_info": {
+                      "description": "Public base URL for FeatureInfo OnlineResources",
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "legend": {
+                      "description": "Public base URL for Legend OnlineResources",
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "name"
+              ]
+            }
+          },
+          "wfs_services": {
+            "title": "WFS services",
+            "type": "array",
+            "items": {
+              "title": "WFS service",
+              "description": "Additional config for WFS service",
+              "type": "object",
+              "properties": {
+                "name": {
+                  "description": "WFS service name",
+                  "type": "string"
+                },
+                "online_resource": {
+                  "description": "Custom OnlineResource shown in GetCapabilities",
+                  "type": "string",
+                  "format": "uri"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            }
+          }
+        }
+      },
+      "required": [
+        "name"
+      ]
+    }
+  }
+}

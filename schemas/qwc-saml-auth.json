@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://git.sourcepole.ch/ktso/somap/-/raw/master/docs/schemas/qwc-saml-auth.json",
+  "title": "QWC SAML Authentication Service",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "title": "JSON Schema",
+      "description": "Reference to JSON schema of this config",
+      "type": "string",
+      "format": "uri",
+      "default": "https://git.sourcepole.ch/ktso/somap/-/raw/master/docs/schemas/qwc-saml-auth.json"
+    },
+    "service": {
+      "title": "Service name",
+      "type": "string",
+      "const": "saml-auth"
+    },
+    "config": {
+      "title": "Config options",
+      "type": "object",
+      "properties": {
+        "saml_path": {
+          "description": "custom path for SAML configuration base directory. Example: saml",
+          "type": "string"
+        },
+        "saml_slo": {
+          "description": "Execute SAML SLO (Single Logout)",
+          "type": "boolean",
+          "default": false
+        },
+        "group_attr": {
+          "description": "Attribute name with group information. Example: department_qualified",
+          "type": "string"
+        }
+      },
+      "required": []
+    }
+  },
+  "required": [
+    "service",
+    "config"
+  ]
+}
