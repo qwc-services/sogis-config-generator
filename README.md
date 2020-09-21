@@ -20,7 +20,7 @@ Configuration
 Example `configGeneratorConfig.json`:
 ```json
 {
-  "$schema": "https://git.sourcepole.ch/ktso/somap/-/raw/master/config-generator/schemas/sogis-config-generator.json",
+  "$schema": "https://github.com/qwc-services/sogis-config-generator/raw/master/schemas/sogis-config-generator.json",
   "service": "config-generator",
   "config": {
     "config_db_url": "postgresql:///?service=soconfig_services",
@@ -68,8 +68,6 @@ Example `configGeneratorConfig.json`:
   }
 }
 ```
-
-For a full example see [docker/configGeneratorConfig.json](../docker/configGeneratorConfig.json).
 
 
 Usage

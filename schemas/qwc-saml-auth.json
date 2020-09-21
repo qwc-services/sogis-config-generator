@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://git.sourcepole.ch/ktso/somap/-/raw/master/docs/schemas/qwc-saml-auth.json",
+  "$id": "https://github.com/qwc-services/sogis-config-generator/raw/master/schemas/qwc-saml-auth.json",
   "title": "QWC SAML Authentication Service",
   "type": "object",
   "properties": {
@@ -9,7 +9,7 @@
       "description": "Reference to JSON schema of this config",
       "type": "string",
       "format": "uri",
-      "default": "https://git.sourcepole.ch/ktso/somap/-/raw/master/docs/schemas/qwc-saml-auth.json"
+      "default": "https://github.com/qwc-services/sogis-config-generator/raw/master/schemas/qwc-saml-auth.json"
     },
     "service": {
       "title": "Service name",

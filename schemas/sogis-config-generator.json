@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://git.sourcepole.ch/ktso/somap/-/raw/master/config-generator/schemas/sogis-config-generator.json",
+  "$id": "https://github.com/qwc-services/sogis-config-generator/raw/master/schemas/sogis-config-generator.json",
   "title": "SO!GIS Config generator",
   "type": "object",
   "properties": {
@@ -9,7 +9,7 @@
       "description": "Reference to JSON schema of this config",
       "type": "string",
       "format": "uri",
-      "default": "https://git.sourcepole.ch/ktso/somap/-/raw/master/config-generator/schemas/sogis-config-generator.json"
+      "default": "https://github.com/qwc-services/sogis-config-generator/raw/master/schemas/sogis-config-generator.json"
     },
     "service": {
       "title": "Service name",
