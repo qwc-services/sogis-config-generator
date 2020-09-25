@@ -12,6 +12,9 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.sql import text as sql_text
 
 
+QGS_VERSION = os.environ.get('QGS_VERSION', '2')
+
+
 class LoggerHelper:
     """LoggerHelper class
 
@@ -499,7 +502,11 @@ class QGSWriter:
             })
 
         # Render project
-        qgs_template = Template(self.load_template('qgs/service.qgs'))
+        if QGS_VERSION == '3':
+            qgs_template_fn = 'qgs/service_3.qgs'
+        else:
+            qgs_template_fn = 'qgs/service_2.qgs'
+        qgs_template = Template(self.load_template(qgs_template_fn))
         dataset = wms.name
 
         ows_metadata = {}
