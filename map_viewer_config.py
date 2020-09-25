@@ -479,6 +479,8 @@ class MapViewerConfig(ServiceConfig):
         """
         layers = []
         drawing_order = []
+        data_set_view = None
+        searchterms = []
 
         # NOTE: use ordered keys
         item_layer = OrderedDict()
@@ -538,6 +540,13 @@ class MapViewerConfig(ServiceConfig):
             item_layer['bbox'] = layer_bbox
 
             drawing_order.append(layer.name)
+
+        if data_set_view:
+            if data_set_view.facet:
+                item_layer['searchterms'] = [data_set_view.facet]
+                searchterms.append(data_set_view.facet)
+        elif len(searchterms) > 0:
+            item_layer['searchterms'] = searchterms
 
         layers.append(item_layer)
 
