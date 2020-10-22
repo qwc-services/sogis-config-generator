@@ -200,7 +200,7 @@ class FeatureInfoServiceConfig(ServiceConfig):
 
                 # display field
                 if attr.displayfield:
-                    display_field = attr.name
+                    display_field = attr.alias or attr.name
 
                 attributes.append(attribute)
 
