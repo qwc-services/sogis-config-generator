@@ -311,23 +311,17 @@ class DataproductServiceConfig(ServiceConfig):
             group_layer = parents[0]
             visible = group_layer.layer_active
 
-        queryable = False
+        queryable = self._layer_queryable(ows_layer)
         display_field = None
         if ows_layer.type == 'data':
             data_set_view = ows_layer.data_set_view
             data_source = data_set_view.data_set.data_source
             if data_source.connection_type == 'database':
-                if data_set_view.attributes:
-                    # make layer queryable if there are any attributes
-                    queryable = True
-                    # get any display field
-                    for attr in data_set_view.attributes:
-                        if attr.displayfield:
-                            display_field = attr.name
-                            break
-            else:
-                # raster data layers are always queryable
-                queryable = True
+                # get any display field
+                for attr in data_set_view.attributes:
+                    if attr.displayfield:
+                        display_field = attr.name
+                        break
 
         opacity = round(
             (100.0 - ows_layer.layer_transparency)/100.0 * 255
@@ -340,6 +334,33 @@ class DataproductServiceConfig(ServiceConfig):
         metadata['opacity'] = opacity
 
         return metadata
+
+    def _layer_queryable(self, ows_layer):
+        """Recursively check whether layer or any sublayers are queryable.
+
+        :param obj ows_layer: Group or Data layer object
+        """
+        queryable = False
+        if ows_layer.type == 'data':
+            data_set_view = ows_layer.data_set_view
+            data_source = data_set_view.data_set.data_source
+            if data_source.connection_type == 'database':
+                if data_set_view.attributes:
+                    # make layer queryable if there are any attributes
+                    queryable = True
+            else:
+                # raster data layers are always queryable
+                queryable = True
+        elif ows_layer.type == 'group' and ows_layer.facade:
+            # check if any facade sublayer is queryable
+            for group_layer in ows_layer.sub_layers:
+                sub_layer = group_layer.sub_layer
+                if self._layer_queryable(sub_layer):
+                    # make facade layer queryable
+                    queryable = True
+                    break
+
+        return queryable
 
     def _basic_dataset_metadata(self, data_set_view, session):
         """Collect metadata of a basic DataSet dataproduct.
