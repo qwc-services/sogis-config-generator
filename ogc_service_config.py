@@ -507,7 +507,9 @@ class OGCServiceConfig(ServiceConfig):
                 # info template (NOTE: used in FeatureInfo service)
                 if layer.templateinfo:
                     wms_layer['info_template'] = \
-                        layer.templateinfo.gdi_oid in permitted_ids
+                        layer.templateinfo.gdi_oid in (
+                            permitted_ids | public_ids
+                        )
 
                 # add layer
                 wms_layers.append(wms_layer)
