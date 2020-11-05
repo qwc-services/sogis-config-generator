@@ -243,6 +243,13 @@ class MapViewerConfig(ServiceConfig):
             'default_layer_bounds', [2590000, 1210000, 2650000, 1270000]
         )
 
+        themes_background_layers = self.background_layers(session)
+        # collect layers referenced by group
+        self.background_layer_group_refs = []
+        for l in themes_background_layers:
+            for it in l.get('items', []):
+                self.background_layer_group_refs.append(it.get('ref'))
+
         # collect maps
         Map = self.config_models.model('map')
         query = session.query(Map).distinct(Map.name)
@@ -276,6 +283,13 @@ class MapViewerConfig(ServiceConfig):
                     if background_layer['name'] == bg_name:
                         background_layer['visibility'] = True
                         break
+            # use printLayer from themes_background_layers
+            for background_layer in background_layers:
+                themes_bgl = next((l for l in themes_background_layers if
+                                  l['name'] == background_layer['name']), {})
+                if themes_bgl.get('printLayer'):
+                    background_layer['printLayer'] = themes_bgl['printLayer']
+
             item['backgroundLayers'] = background_layers
 
             item['print'] = print_layouts
@@ -597,7 +611,9 @@ class MapViewerConfig(ServiceConfig):
             background_layer = OrderedDict()
             background_layer['name'] = layer.qwc2_bg_layer_name
             background_layer['printLayer'] = layer.name
-            background_layers.append(background_layer)
+            # Ignore background layers referenced by groups
+            if background_layer['name'] not in self.background_layer_group_refs:
+                background_layers.append(background_layer)
 
         return background_layers
 
