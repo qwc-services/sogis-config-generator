@@ -183,7 +183,8 @@ class MapViewerConfig(ServiceConfig):
         # collect resources from ConfigDB
         themes = OrderedDict()
         themes['title'] = 'root'
-        themes['items'] = self.themes_items(service_config, session)
+        theme_external_layers = []
+        themes['items'] = self.themes_items(theme_external_layers, service_config, session)
         themes['subdirs'] = []
         themes['defaultTheme'] = cfg_qwc2_themes.get('default_theme')
         themes['backgroundLayers'] = self.background_layers(session)
@@ -205,13 +206,29 @@ class MapViewerConfig(ServiceConfig):
             ]
         )
 
+        themes["externalLayers"] = []
+        for entry in theme_external_layers:
+            cpos = entry.find(':')
+            hpos = entry.rfind('#')
+            type = entry[0:cpos]
+            url = entry[cpos:hpos]
+            layername = entry[hpos+1:]
+            themes["externalLayers"].append({
+                "name": entry,
+                "type": type,
+                "url": url,
+                "params": {"LAYERS": layername},
+                "infoFormats": ["text/plain"]
+            })
+
         qwc2_themes['themes'] = themes
 
         return qwc2_themes
 
-    def themes_items(self, service_config, session):
+    def themes_items(self, theme_external_layers, service_config, session):
         """Collect theme items from ConfigDB.
 
+        :param list theme_external_layers: external layers added to themes
         :param obj service_config: Additional service config
         :param Session session: DB session
         """
@@ -271,9 +288,13 @@ class MapViewerConfig(ServiceConfig):
             item['initialBbox']['bounds'] = initial_bounds
 
             # collect layers
-            layers, drawing_order = self.map_layers(map_obj, layer_bbox)
+            external_layers = []
+            layers, drawing_order = self.map_layers(map_obj, layer_bbox, external_layers)
             item['sublayers'] = layers
             item['drawingOrder'] = drawing_order
+            item['externalLayers'] = external_layers
+
+            theme_external_layers += list(map(lambda entry: entry["name"], external_layers))
 
             background_layers = self.item_background_layers(session)
             if map_obj.background_layer:
@@ -458,11 +479,12 @@ class MapViewerConfig(ServiceConfig):
 
         return cfg
 
-    def map_layers(self, map_obj, layer_bbox):
+    def map_layers(self, map_obj, layer_bbox, external_layers):
         """Return theme item layers and drawing order for a map from ConfigDB.
 
         :param obj map_obj: Map object
         :param obj layer_bbox: Default layer extent
+        :param obj external_layers: Collected external layers
         """
         layers = []
         drawing_order = []
@@ -473,7 +495,7 @@ class MapViewerConfig(ServiceConfig):
                 (100.0 - map_layer.layer_transparency)/100.0 * 255
             )
             res = self.collect_layers(
-                ows_layer, opacity, map_layer.layer_active, layer_bbox
+                ows_layer, opacity, map_layer.layer_active, layer_bbox, external_layers
             )
             layers += res['layers']
             drawing_order += res['drawing_order']
@@ -482,7 +504,7 @@ class MapViewerConfig(ServiceConfig):
 
         return layers, drawing_order
 
-    def collect_layers(self, layer, opacity, visibility, layer_bbox):
+    def collect_layers(self, layer, opacity, visibility, layer_bbox, external_layers):
         """Recursively collect layers for layer subtree from ConfigDB
         and return nested theme item sublayers and drawing order.
 
@@ -490,6 +512,7 @@ class MapViewerConfig(ServiceConfig):
         :param int opacity: Layer Opacity between [0..100]
         :param bool visibility: Whether layer is active
         :param obj layer_bbox: Default layer extent
+        :param obj external_layers: Collected external layers
         """
         layers = []
         drawing_order = []
@@ -509,7 +532,7 @@ class MapViewerConfig(ServiceConfig):
                 sublayer = group_layer.sub_layer
                 # recursively collect sublayer
                 res = self.collect_layers(
-                    sublayer, opacity, visibility, layer_bbox
+                    sublayer, opacity, visibility, layer_bbox, external_layers
                 )
                 sublayers += res['layers']
                 drawing_order += res['drawing_order']
@@ -556,6 +579,14 @@ class MapViewerConfig(ServiceConfig):
             drawing_order.append(layer.name)
 
         if data_set_view:
+            data_set = data_set_view.data_set
+            data_source = data_set.data_source
+            if data_source.connection_type == "wms" or data_source.connection_type == "wmts":
+                external_layers.append({
+                    "internalLayer": item_layer['name'],
+                    "name": data_source.connection_type + ":" + data_source.connection + "#" + data_set.data_set_name,
+                })
+
             if data_set_view.facet:
                 item_layer['searchterms'] = [data_set_view.facet]
                 searchterms.append(data_set_view.facet)
