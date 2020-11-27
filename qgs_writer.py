@@ -12,6 +12,8 @@ from xml.dom.minidom import parseString
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.sql import text as sql_text
 
+from wmts_utils import get_wmts_layer_data
+
 
 QGS_VERSION = os.environ.get('QGS_VERSION', '2')
 
@@ -447,72 +449,16 @@ class QGSWriter:
                 connection = layer.data_set_view.data_set.data_source.connection
                 dataset = layer.data_set_view.data_set.data_set_name
 
-                if not connection in self.wmts_capabilities:
-                    response = requests.get(connection)
-                    if response.status_code != requests.codes.ok:
-                        self.logger.error(
-                            "Could not download WMTS capabilities from %s:\n%s" %
-                            (connection, response.text))
-                        return {}
+                data = get_wmts_layer_data(self.logger, connection, dataset)
 
-                    self.wmts_capabilities[connection] = parseString(response.text)
-
-                doc = self.wmts_capabilities[connection]
-                contents = doc.getElementsByTagName("Contents")[0]
-                tileMatrixMap = {}
-                for child in contents.childNodes:
-                    if child.nodeName == "TileMatrixSet":
-                        tileMatrixSet = child
-                        identifier = tileMatrixSet \
-                            .getElementsByTagName("ows:Identifier")[0] \
-                            .firstChild.nodeValue
-                        supportedCrs = tileMatrixSet \
-                            .getElementsByTagName("ows:SupportedCRS")[0] \
-                            .firstChild.nodeValue.replace("urn:ogc:def:crs:", "")
-                        tileMatrixMap[identifier] = supportedCrs
-
-                targetLayer = None
-                layers = contents.getElementsByTagName("Layer")
-                for entry in layers:
-                    if entry.getElementsByTagName("ows:Identifier")[0] \
-                        .firstChild.nodeValue == dataset:
-                        targetLayer = entry
-                        break
-
-                if not targetLayer:
-                    self.logger.error(
-                            "Could not find layer %s in WMTS capabilities %s" %
-                            (dataset, connection))
-
-                targetTileMatrixSet = None
-                targetCrs = None
-                tileMatrixSets = targetLayer \
-                    .getElementsByTagName("TileMatrixSetLink")[0] \
-                    .getElementsByTagName("TileMatrixSet")
-                for tileMatrixSet in tileMatrixSets:
-                    if tileMatrixSet.firstChild.nodeValue in tileMatrixMap:
-                        targetTileMatrixSet = tileMatrixSet.firstChild.nodeValue
-                        targetCrs = tileMatrixMap[targetTileMatrixSet]
-                        # Use EPSG:2056 tile matrix if possible
-                        if tileMatrixMap[targetTileMatrixSet] == "EPSG:2056":
-                            break
-
-                style = targetLayer.getElementsByTagName("Style")[0] \
-                    .getElementsByTagName("ows:Identifier")[0].firstChild.nodeValue
-
-                dimIdent = targetLayer.getElementsByTagName("Dimension")[0] \
-                    .getElementsByTagName("ows:Identifier")[0].firstChild.nodeValue
-                dimVal = targetLayer.getElementsByTagName("Dimension")[0] \
-                    .getElementsByTagName("Value")[0].firstChild.nodeValue
-
-                datasource = "crs={crs}&format=image/png&layers={dataset}&styles={style}&tileDimensions={dimension}%3D{value}&tileMatrixSet={tileMatrixSet}&url={connection}".format(
-                    crs=targetCrs,
-                    dataset=dataset,
-                    style=style,
-                    tileMatrixSet=targetTileMatrixSet,
-                    connection=connection,
-                    dimension=dimIdent,
-                    value = dimVal
+                datasource = "crs={crs}&format=image/png&layers={layer_name}&styles={style}&tileDimensions={dim_ident}%3D{dim_value}&tileMatrixSet={tileMatrixSet}&url={capabilites_url}".format(
+                    crs = data["crs"],
+                    layer_name = data["layer_name"],
+                    style = data["style"],
+                    tileMatrixSet = data["tileMatrixSet"],
+                    capabilites_url = data["capabilites_url"],
+                    dim_ident = data["dim_ident"],
+                    dim_value = data["dim_value"]
                 )
 
                 extent = None

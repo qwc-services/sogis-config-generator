@@ -8,6 +8,8 @@ from sqlalchemy.sql import text as sql_text
 from permissions_query import PermissionsQuery
 from service_config import ServiceConfig
 
+from wmts_utils import get_wmts_layer_data
+
 
 class MapViewerConfig(ServiceConfig):
     """MapViewerServiceConfig class
@@ -211,15 +213,33 @@ class MapViewerConfig(ServiceConfig):
             cpos = entry.find(':')
             hpos = entry.rfind('#')
             type = entry[0:cpos]
-            url = entry[cpos:hpos]
+            url = entry[cpos+1:hpos]
             layername = entry[hpos+1:]
-            themes["externalLayers"].append({
-                "name": entry,
-                "type": type,
-                "url": url,
-                "params": {"LAYERS": layername},
-                "infoFormats": ["text/plain"]
-            })
+            if type == "wms":
+                themes["externalLayers"].append({
+                    "name": entry,
+                    "type": type,
+                    "url": url,
+                    "params": {"LAYERS": layername},
+                    "infoFormats": ["text/plain"]
+                })
+            elif type == "wmts":
+                data = get_wmts_layer_data(self.logger, url, layername)
+                themes["externalLayers"].append({
+                    "name": entry,
+                    "type": type,
+                    "url": data["res_url"],
+                    "tileMatrixPrefix": "",
+                    "tileMatrixSet": data["tileMatrixSet"],
+                    "originX": data["origin"][0],
+                    "originY": data["origin"][1],
+                    "projection:": data["crs"],
+                    "resolutions": data["resolutions"],
+                    "tileSize": data["tile_size"]
+                })
+            else:
+                self.logger.warning("Skipping external layer %s of unknown type %s" %
+                                    (entry, type))
 
         qwc2_themes['themes'] = themes
 
