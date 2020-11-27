@@ -114,6 +114,7 @@
                 <provider encoding="UTF-8">{{ item['provider'] }}</provider>
                 {{ item['style'] }}
                 <mapTip>{{ item['mapTip'] }}</mapTip>
+                <dataUrl format="">{{ item['dataUrl'] }}</dataUrl>
             </maplayer>
         {%- endif -%}
     {%- endfor -%}

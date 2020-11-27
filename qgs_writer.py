@@ -3,6 +3,7 @@ import os
 import re
 from urllib.parse import urlparse, parse_qs
 import uuid
+import requests
 
 from flask import json, jsonify
 from jinja2 import Template
@@ -124,6 +125,9 @@ class QGSWriter:
             "raster": self.load_template('qgs/raster.qml')
         }
 
+        # wmts capabilities cache
+        self.wmts_capabilities = {}
+
     def load_template(self, path):
         """Load contents of QGIS template file.
 
@@ -208,6 +212,8 @@ class QGSWriter:
             # FIXME Hardcoded
             CONNTYPE_DB = 'database'
             CONNTYPE_FILE = 'directory'
+            CONNTYPE_WMS = 'wms'
+            CONNTYPE_WMTS = 'wmts'
 
             data_source = layer.data_set_view.data_set.data_source
             conn_type = data_source.connection_type
@@ -387,6 +393,7 @@ class QGSWriter:
 
                 vectorlayerids.append(layerid)
 
+                dataUrl = ""
             elif conn_type == CONNTYPE_FILE:
                 # FIXME Hardcoded
                 # FIXME File connections are assumed to be raster layers
@@ -418,6 +425,104 @@ class QGSWriter:
 
                 # MapLayer attributes
                 attributes = qml["attr"]
+
+                dataUrl = ""
+            elif conn_type == CONNTYPE_WMS:
+                provider = "wms"
+                layer_type = "raster"
+                connection = layer.data_set_view.data_set.data_source.connection
+                dataset = layer.data_set_view.data_set.data_set_name
+                datasource = "crs=EPSG:2056&format=image/png&styles&layers=%s&url=%s" % (dataset, connection)
+
+                extent = None
+                qml = self.parse_qml_style(self.default_styles['raster'])
+
+                # MapLayer attributes
+                attributes = qml["attr"]
+
+                dataUrl = "wms:%s#%s" % (connection, dataset)
+            elif conn_type == CONNTYPE_WMTS:
+                provider = "wms"
+                layer_type = "raster"
+                connection = layer.data_set_view.data_set.data_source.connection
+                dataset = layer.data_set_view.data_set.data_set_name
+
+                if not connection in self.wmts_capabilities:
+                    response = requests.get(connection)
+                    if response.status_code != requests.codes.ok:
+                        self.logger.error(
+                            "Could not download WMTS capabilities from %s:\n%s" %
+                            (connection, response.text))
+                        return {}
+
+                    self.wmts_capabilities[connection] = parseString(response.text)
+
+                doc = self.wmts_capabilities[connection]
+                contents = doc.getElementsByTagName("Contents")[0]
+                tileMatrixMap = {}
+                for child in contents.childNodes:
+                    if child.nodeName == "TileMatrixSet":
+                        tileMatrixSet = child
+                        identifier = tileMatrixSet \
+                            .getElementsByTagName("ows:Identifier")[0] \
+                            .firstChild.nodeValue
+                        supportedCrs = tileMatrixSet \
+                            .getElementsByTagName("ows:SupportedCRS")[0] \
+                            .firstChild.nodeValue.replace("urn:ogc:def:crs:", "")
+                        tileMatrixMap[identifier] = supportedCrs
+
+                targetLayer = None
+                layers = contents.getElementsByTagName("Layer")
+                for entry in layers:
+                    if entry.getElementsByTagName("ows:Identifier")[0] \
+                        .firstChild.nodeValue == dataset:
+                        targetLayer = entry
+                        break
+
+                if not targetLayer:
+                    self.logger.error(
+                            "Could not find layer %s in WMTS capabilities %s" %
+                            (dataset, connection))
+
+                targetTileMatrixSet = None
+                targetCrs = None
+                tileMatrixSets = targetLayer \
+                    .getElementsByTagName("TileMatrixSetLink")[0] \
+                    .getElementsByTagName("TileMatrixSet")
+                for tileMatrixSet in tileMatrixSets:
+                    if tileMatrixSet.firstChild.nodeValue in tileMatrixMap:
+                        targetTileMatrixSet = tileMatrixSet.firstChild.nodeValue
+                        targetCrs = tileMatrixMap[targetTileMatrixSet]
+                        # Use EPSG:2056 tile matrix if possible
+                        if tileMatrixMap[targetTileMatrixSet] == "EPSG:2056":
+                            break
+
+                style = targetLayer.getElementsByTagName("Style")[0] \
+                    .getElementsByTagName("ows:Identifier")[0].firstChild.nodeValue
+
+                dimIdent = targetLayer.getElementsByTagName("Dimension")[0] \
+                    .getElementsByTagName("ows:Identifier")[0].firstChild.nodeValue
+                dimVal = targetLayer.getElementsByTagName("Dimension")[0] \
+                    .getElementsByTagName("Value")[0].firstChild.nodeValue
+
+                datasource = "crs={crs}&format=image/png&layers={dataset}&styles={style}&tileDimensions={dimension}%3D{value}&tileMatrixSet={tileMatrixSet}&url={connection}".format(
+                    crs=targetCrs,
+                    dataset=dataset,
+                    style=style,
+                    tileMatrixSet=targetTileMatrixSet,
+                    connection=connection,
+                    dimension=dimIdent,
+                    value = dimVal
+                )
+
+                extent = None
+                qml = self.parse_qml_style(self.default_styles['raster'])
+
+                # MapLayer attributes
+                attributes = qml["attr"]
+
+                dataUrl = "wmts:%s#%s" % (connection, dataset)
+
             else:
                 return {}
 
@@ -433,7 +538,8 @@ class QGSWriter:
                 "datasource": html.escape(datasource),
                 "style": qml["style"],
                 "mapTip": "",
-                "extent": extent
+                "extent": extent,
+                "dataUrl": dataUrl
             }
 
     def update_qgs(self):
@@ -498,7 +604,8 @@ class QGSWriter:
                 "datasource": html.escape(entry.qgis_datasource),
                 "style": qml["style"],
                 "mapTip": "",
-                "extent": self.default_extent
+                "extent": self.default_extent,
+                "dataUrl": ""
             })
 
         # Render project
