@@ -13,6 +13,8 @@ from permissions_query import PermissionsQuery
 from service_config import ServiceConfig
 from service_lib.database import DatabaseEngine
 
+from wmts_utils import get_wmts_layer_data
+
 
 class DataproductServiceConfig(ServiceConfig):
     """DataproductServiceConfig class
@@ -538,6 +540,42 @@ class DataproductServiceConfig(ServiceConfig):
             metadata['crs'] = 'EPSG:2056'
             metadata['datatype'] = 'vector'
             metadata['postgis_datasource'] = postgis_datasource
+        elif data_source.connection_type == 'wms':
+            # External WMS
+
+            url = data_source.connection
+            layername = data_set.data_set_name
+            conn = "wms:%s#%s" % (url, layername)
+            metadata = OrderedDict()
+            metadata['datatype'] = 'raster'
+            metadata['external_layer'] = {
+                "name": conn,
+                "type": "wms",
+                "url": url,
+                "params": {"LAYERS": layername},
+                "infoFormats": ["text/plain"]
+            }
+        elif data_source.connection_type == 'wmts':
+            # External WMTS
+
+            url = data_source.connection
+            layername = data_set.data_set_name
+            conn = "wmts:%s#%s" % (url, layername)
+            data = get_wmts_layer_data(self.logger, url, layername)
+            metadata = OrderedDict()
+            metadata['datatype'] = 'raster'
+            metadata['external_layer'] = {
+                "name": conn,
+                "type": "wmts",
+                "url": data["res_url"],
+                "tileMatrixPrefix": "",
+                "tileMatrixSet": data["tileMatrixSet"],
+                "originX": data["origin"][0],
+                "originY": data["origin"][1],
+                "projection:": data["crs"],
+                "resolutions": data["resolutions"],
+                "tileSize": data["tile_size"]
+            }
         else:
             # raster DataSet
 
