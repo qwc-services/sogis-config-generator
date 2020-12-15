@@ -380,6 +380,7 @@ class MapViewerConfig(ServiceConfig):
         item['attribution'] = attribution
 
         item['keywords'] = ''
+        item['abstract'] = ''
         item['mapCrs'] = 'EPSG:2056'
 
         bbox = OrderedDict()
