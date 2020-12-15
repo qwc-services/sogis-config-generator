@@ -249,6 +249,10 @@ class OGCServiceConfig(ServiceConfig):
         cfg_resources = service_config.get('resources', {})
         cfg_wfs_services = cfg_resources.get('wfs_services', [])
 
+        default_qgis_server_url = cfg_config.get(
+            'default_qgis_server_url', 'http://localhost:8001/ows/'
+        ).rstrip('/') + '/'
+
         WmsWfs = self.config_models.model('wms_wfs')
         query = session.query(WmsWfs).filter(WmsWfs.ows_type == 'WFS')
         for wfs in query.all():
@@ -262,6 +266,10 @@ class OGCServiceConfig(ServiceConfig):
             # NOTE: use ordered keys
             wfs_service = OrderedDict()
             wfs_service['name'] = wfs.name
+            # use separate QGIS project
+            wfs_service['wfs_url'] = urljoin(
+                default_qgis_server_url, "%s_wfs" % wfs.name
+            )
             # set any online resource
             wfs_service['online_resource'] = cfg_wfs.get('online_resource')
             # collect WFS layers
