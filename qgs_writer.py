@@ -4,6 +4,7 @@ import re
 from urllib.parse import urlparse, parse_qs
 import uuid
 import requests
+from copy import deepcopy
 
 from flask import json, jsonify
 from jinja2 import Template
@@ -211,7 +212,6 @@ class QGSWriter:
                 ]
             }
         else:
-            # FIXME Hardcoded
             CONNTYPE_DB = 'database'
             CONNTYPE_FILE = 'directory'
             CONNTYPE_WMS = 'wms'
@@ -223,8 +223,7 @@ class QGSWriter:
 
             if conn_type == CONNTYPE_DB:
                 # provider and layer type
-                # FIXME Hardcoded
-                # FIXME DB connections are assumed to be vector layers
+                # NOTE: DB connections are assumed to be pg vector layers
                 provider = "postgres"
                 layer_type = "vector"
 
@@ -397,9 +396,7 @@ class QGSWriter:
 
                 dataUrl = ""
             elif conn_type == CONNTYPE_FILE:
-                # FIXME Hardcoded
-                # FIXME File connections are assumed to be raster layers
-                # FIXME Extent hardcoded to canton extent
+                # NOTE: File connections are assumed to be raster layers
                 provider = "gdal"
                 layer_type = "raster"
                 data_source_dir = layer.data_set_view.data_set \
@@ -408,7 +405,7 @@ class QGSWriter:
 
                 extent = None
                 if self.default_raster_extent is not None:
-                    # set fixed raster layer extent
+                    # NOTE: Use configured default extent as raster extent
                     extent = self.default_raster_extent
                 # else computed on-the-fly by QGIS Server
 
@@ -429,7 +426,7 @@ class QGSWriter:
                 attributes = qml["attr"]
 
                 dataUrl = ""
-            elif conn_type == CONNTYPE_WMS:
+            elif conn_type == CONNTYPE_WMS and is_wms:
                 provider = "wms"
                 layer_type = "raster"
                 connection = layer.data_set_view.data_set.data_source.connection
@@ -443,7 +440,7 @@ class QGSWriter:
                 attributes = qml["attr"]
 
                 dataUrl = "wms:%s#%s" % (connection, dataset)
-            elif conn_type == CONNTYPE_WMTS:
+            elif conn_type == CONNTYPE_WMTS and is_wms:
                 provider = "wms"
                 layer_type = "raster"
                 connection = layer.data_set_view.data_set.data_source.connection
@@ -487,6 +484,13 @@ class QGSWriter:
                 "extent": extent,
                 "dataUrl": dataUrl
             }
+
+    def remove_external_layers(self, layertree):
+        if "items" in layertree:
+            layertree["items"][:] = [l for l in layertree["items"]
+                                     if l.get("provider", "") != "wms"]
+            for l in layertree["items"]:
+                self.remove_external_layers(l)
 
     def update_qgs(self):
         self.logger.clear()
@@ -538,7 +542,7 @@ class QGSWriter:
 
         background_layer_model = self.config_models.model('background_layer')
         for entry in session.query(background_layer_model).all():
-            # FIXME Extent hardcoded to canton extent
+            # NOTE: Configured default extent used for all layers
             bg_layertree["items"].append({
                 "type": "layer",
                 "name": html.escape(entry.name),
@@ -553,6 +557,11 @@ class QGSWriter:
                 "extent": self.default_extent,
                 "dataUrl": ""
             })
+
+        print_layertree = deepcopy(wmslayertree['items']) + [bg_layertree]
+
+        # Remove external WMS/WMTS layers from wmslayertree
+        self.remove_external_layers(wmslayertree)
 
         # Render project
         if QGS_VERSION == '3':
@@ -636,7 +645,7 @@ class QGSWriter:
                 'wms_abstract': html.escape(wms.description),
                 'wms_url': html.escape(self.wms_service_url),
                 'wms_root_name': html.escape(wmslayertree['name']),
-                'layertree': wmslayertree['items'] + [bg_layertree],
+                'layertree': print_layertree,
                 'composers': composers,
                 'selection_color': self.selection_color
             }
