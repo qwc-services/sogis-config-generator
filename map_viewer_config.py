@@ -8,7 +8,7 @@ from sqlalchemy.sql import text as sql_text
 from permissions_query import PermissionsQuery
 from service_config import ServiceConfig
 
-from wmts_utils import get_wmts_layer_data
+from wmts_utils import get_wms_layer_data, get_wmts_layer_data
 
 
 class MapViewerConfig(ServiceConfig):
@@ -185,7 +185,7 @@ class MapViewerConfig(ServiceConfig):
         # collect resources from ConfigDB
         themes = OrderedDict()
         themes['title'] = 'root'
-        theme_external_layers = []
+        theme_external_layers = {}
         themes['items'] = self.themes_items(theme_external_layers, service_config, session)
         themes['subdirs'] = []
         themes['defaultTheme'] = cfg_qwc2_themes.get('default_theme')
@@ -208,38 +208,7 @@ class MapViewerConfig(ServiceConfig):
             ]
         )
 
-        themes["externalLayers"] = []
-        for entry in theme_external_layers:
-            cpos = entry.find(':')
-            hpos = entry.rfind('#')
-            type = entry[0:cpos]
-            url = entry[cpos+1:hpos]
-            layername = entry[hpos+1:]
-            if type == "wms":
-                themes["externalLayers"].append({
-                    "name": entry,
-                    "type": type,
-                    "url": url,
-                    "params": {"LAYERS": layername},
-                    "infoFormats": ["text/plain"]
-                })
-            elif type == "wmts":
-                data = get_wmts_layer_data(self.logger, url, layername)
-                themes["externalLayers"].append({
-                    "name": entry,
-                    "type": type,
-                    "url": data["res_url"],
-                    "tileMatrixPrefix": "",
-                    "tileMatrixSet": data["tileMatrixSet"],
-                    "originX": data["origin"][0],
-                    "originY": data["origin"][1],
-                    "projection:": data["crs"],
-                    "resolutions": data["resolutions"],
-                    "tileSize": data["tile_size"]
-                })
-            else:
-                self.logger.warning("Skipping external layer %s of unknown type %s" %
-                                    (entry, type))
+        themes["externalLayers"] = list(theme_external_layers.values())
 
         qwc2_themes['themes'] = themes
 
@@ -309,12 +278,10 @@ class MapViewerConfig(ServiceConfig):
 
             # collect layers
             external_layers = []
-            layers, drawing_order = self.map_layers(map_obj, layer_bbox, external_layers)
+            layers, drawing_order = self.map_layers(map_obj, layer_bbox, external_layers, theme_external_layers)
             item['sublayers'] = layers
             item['drawingOrder'] = drawing_order
             item['externalLayers'] = external_layers
-
-            theme_external_layers += list(map(lambda entry: entry["name"], external_layers))
 
             background_layers = self.item_background_layers(session)
             if map_obj.background_layer:
@@ -500,7 +467,7 @@ class MapViewerConfig(ServiceConfig):
 
         return cfg
 
-    def map_layers(self, map_obj, layer_bbox, external_layers):
+    def map_layers(self, map_obj, layer_bbox, external_layers, theme_external_layers):
         """Return theme item layers and drawing order for a map from ConfigDB.
 
         :param obj map_obj: Map object
@@ -516,7 +483,7 @@ class MapViewerConfig(ServiceConfig):
                 (100.0 - map_layer.layer_transparency)/100.0 * 255
             )
             res = self.collect_layers(
-                ows_layer, opacity, map_layer.layer_active, layer_bbox, external_layers
+                ows_layer, opacity, map_layer.layer_active, layer_bbox, external_layers, theme_external_layers
             )
             layers += res['layers']
             drawing_order += res['drawing_order']
@@ -525,7 +492,7 @@ class MapViewerConfig(ServiceConfig):
 
         return layers, drawing_order
 
-    def collect_layers(self, layer, opacity, visibility, layer_bbox, external_layers):
+    def collect_layers(self, layer, opacity, visibility, layer_bbox, external_layers, theme_external_layers):
         """Recursively collect layers for layer subtree from ConfigDB
         and return nested theme item sublayers and drawing order.
 
@@ -553,7 +520,7 @@ class MapViewerConfig(ServiceConfig):
                 sublayer = group_layer.sub_layer
                 # recursively collect sublayer
                 res = self.collect_layers(
-                    sublayer, opacity, visibility, layer_bbox, external_layers
+                    sublayer, opacity, visibility, layer_bbox, external_layers, theme_external_layers
                 )
                 sublayers += res['layers']
                 drawing_order += res['drawing_order']
@@ -603,10 +570,16 @@ class MapViewerConfig(ServiceConfig):
             data_set = data_set_view.data_set
             data_source = data_set.data_source
             if data_source.connection_type == "wms" or data_source.connection_type == "wmts":
+                external_layer_name = data_source.connection_type + ":" + data_source.connection + "#" + data_set.data_set_name
                 external_layers.append({
                     "internalLayer": item_layer['name'],
-                    "name": data_source.connection_type + ":" + data_source.connection + "#" + data_set.data_set_name,
+                    "name": external_layer_name
                 })
+                if not external_layer_name in theme_external_layers:
+                    theme_external_layers[external_layer_name] = self.build_external_layer(
+                        external_layer_name, data_source.connection_type, data_source.connection, data_set.data_set_name)
+                if theme_external_layers[external_layer_name]:
+                    item_layer['abstract'] = theme_external_layers[external_layer_name]['abstract']
 
             if data_set_view.facet:
                 item_layer['searchterms'] = [data_set_view.facet]
@@ -620,6 +593,37 @@ class MapViewerConfig(ServiceConfig):
             'layers': layers,
             'drawing_order': drawing_order
         }
+
+    def build_external_layer(self, name, conn_type, url, layername):
+        if conn_type == "wms":
+            data = get_wms_layer_data(self.logger, url, layername)
+            return {
+                "name": name,
+                "type": conn_type,
+                "url": url,
+                "params": {"LAYERS": layername},
+                "infoFormats": ["text/plain"],
+                "abstract": data["abstract"]
+            }
+        elif conn_type == "wmts":
+            data = get_wmts_layer_data(self.logger, url, layername)
+            return {
+                "name": name,
+                "type": conn_type,
+                "url": data["res_url"],
+                "tileMatrixPrefix": "",
+                "tileMatrixSet": data["tileMatrixSet"],
+                "originX": data["origin"][0],
+                "originY": data["origin"][1],
+                "projection:": data["crs"],
+                "resolutions": data["resolutions"],
+                "tileSize": data["tile_size"],
+                "abstract": data["abstract"]
+            }
+        else:
+            self.logger.warning("Skipping external layer %s of unknown type %s" %
+                                (name, conn_type))
+            return None
 
     def layer_queryable(self, layer):
         """Recursively check whether a layer is queryable.

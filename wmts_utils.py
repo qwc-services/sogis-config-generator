@@ -5,6 +5,47 @@ from qwc_services_core.cache import ExpiringDict
 
 capabilites_cache = ExpiringDict()
 
+def getFirstElementByTagName(parent, name):
+    try:
+        return parent.getElementsByTagName(name)[0]
+    except:
+        return None
+
+def get_wms_layer_data(logger, capabilites_url, layer_name):
+
+    global capabilites_cache
+
+    if not capabilites_cache.lookup(capabilites_url):
+        response = requests.get(capabilites_url + "?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.3.0")
+        if response.status_code != requests.codes.ok:
+            logger.error(
+                "Could not download WMS capabilities from %s:\n%s" %
+                (capabilites_url, response.text))
+            return {}
+
+        capabilites_cache.set(capabilites_url, response.text)
+
+    doc = parseString(capabilites_cache.lookup(capabilites_url)["value"])
+    contents = getFirstElementByTagName(doc, "WMS_Capabilities")
+    layers = contents.getElementsByTagName("Layer")
+    targetLayer = None
+    for layer in layers:
+        name = getFirstElementByTagName(layer, "Name")
+        if name and name.firstChild.nodeValue == layer_name:
+            targetLayer = layer
+            break
+
+    if not targetLayer:
+        return {
+            "abstract": ""
+        }
+
+    abstract = getFirstElementByTagName(targetLayer, "Abstract")
+    return {
+        "abstract": abstract.firstChild.nodeValue if abstract else ""
+    }
+
+
 def get_wmts_layer_data(logger, capabilites_url, layer_name):
 
     global capabilites_cache
@@ -93,6 +134,7 @@ def get_wmts_layer_data(logger, capabilites_url, layer_name):
     res_url = targetLayer.getElementsByTagName("ResourceURL")[0] \
         .getAttribute("template").replace("{%s}" % dim_ident, dim_value)
 
+    abstract = getFirstElementByTagName(targetLayer, "ows:Abstract")
 
     return {
         "crs": targetTileMatrixSet["crs"],
@@ -105,5 +147,6 @@ def get_wmts_layer_data(logger, capabilites_url, layer_name):
         "capabilites_url": capabilites_url,
         "dim_ident": dim_ident,
         "dim_value": dim_value,
-        "res_url": res_url
+        "res_url": res_url,
+        "abstract": abstract.firstChild.nodeValue if abstract else ""
     }

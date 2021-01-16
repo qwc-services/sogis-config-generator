@@ -13,7 +13,7 @@ from xml.dom.minidom import parseString
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.sql import text as sql_text
 
-from wmts_utils import get_wmts_layer_data
+from wmts_utils import get_wms_layer_data, get_wmts_layer_data
 
 
 QGS_VERSION = os.environ.get('QGS_VERSION', '2')
@@ -395,6 +395,8 @@ class QGSWriter:
                 vectorlayerids.append(layerid)
 
                 dataUrl = ""
+                abstract = ""
+
             elif conn_type == CONNTYPE_FILE:
                 # NOTE: File connections are assumed to be raster layers
                 provider = "gdal"
@@ -426,11 +428,16 @@ class QGSWriter:
                 attributes = qml["attr"]
 
                 dataUrl = ""
+                abstract = ""
+
             elif conn_type == CONNTYPE_WMS and is_wms:
                 provider = "wms"
                 layer_type = "raster"
                 connection = layer.data_set_view.data_set.data_source.connection
                 dataset = layer.data_set_view.data_set.data_set_name
+
+                data = get_wms_layer_data(self.logger, connection, dataset)
+
                 datasource = "crs=EPSG:2056&format=image/png&styles&layers=%s&url=%s" % (dataset, connection)
 
                 extent = None
@@ -440,6 +447,9 @@ class QGSWriter:
                 attributes = qml["attr"]
 
                 dataUrl = "wms:%s#%s" % (connection, dataset)
+                abstract = data["abstract"]
+
+
             elif conn_type == CONNTYPE_WMTS and is_wms:
                 provider = "wms"
                 layer_type = "raster"
@@ -465,6 +475,7 @@ class QGSWriter:
                 attributes = qml["attr"]
 
                 dataUrl = "wmts:%s#%s" % (connection, dataset)
+                abstract = data["abstract"]
 
             else:
                 return {}
@@ -482,7 +493,8 @@ class QGSWriter:
                 "style": qml["style"],
                 "mapTip": "",
                 "extent": extent,
-                "dataUrl": dataUrl
+                "dataUrl": dataUrl,
+                "abstract": abstract
             }
 
     def remove_external_layers(self, layertree):
