@@ -11,6 +11,7 @@ import requests
 from service_lib.database import DatabaseEngine
 from service_lib.config_models import ConfigModels
 from service_config import ServiceConfig
+from external_layers import ExternalLayers
 from dataproduct_service_config import DataproductServiceConfig
 from data_service_config import DataServiceConfig
 from document_service_config import DocumentServiceConfig
@@ -169,6 +170,9 @@ class ConfigGenerator():
 
     def write_configs(self):
         """Generate and save service config files."""
+        ext_layers = ExternalLayers(self.config_models, self.logger)
+        ext_layers.layers()
+
         for service in self.config.get('services', []):
             self.write_service_config(service)
 
