@@ -574,7 +574,8 @@ class DataproductServiceConfig(ServiceConfig):
                 "originY": data["origin"][1],
                 "projection:": data["crs"],
                 "resolutions": data["resolutions"],
-                "tileSize": data["tile_size"]
+                "tileSize": data["tile_size"],
+                "abstract": data["abstract"]
             }
         else:
             # raster DataSet
