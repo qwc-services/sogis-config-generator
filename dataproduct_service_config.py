@@ -256,7 +256,8 @@ class DataproductServiceConfig(ServiceConfig):
             datasource = self._dataproduct_datasource(ows_layer, session)
             wms_datasource = self._dataproduct_wms(ows_layer, session)
             ows_metadata = self._ows_metadata(ows_layer)
-            description = ows_metadata.get('abstract')
+            description = datasource.get('abstract') or ows_metadata.get(
+                            'abstract')
         except ObjectDeletedError as e:
             self.logger.error("%s: %s" % (ows_layer.name, e))
             return metadata
@@ -564,6 +565,7 @@ class DataproductServiceConfig(ServiceConfig):
             data = get_wmts_layer_data(self.logger, url, layername)
             metadata = OrderedDict()
             metadata['datatype'] = 'raster'
+            metadata['abstract'] = data["abstract"]
             metadata['external_layer'] = {
                 "name": conn,
                 "type": "wmts",
@@ -574,8 +576,7 @@ class DataproductServiceConfig(ServiceConfig):
                 "originY": data["origin"][1],
                 "projection:": data["crs"],
                 "resolutions": data["resolutions"],
-                "tileSize": data["tile_size"],
-                "abstract": data["abstract"]
+                "tileSize": data["tile_size"]
             }
         else:
             # raster DataSet
