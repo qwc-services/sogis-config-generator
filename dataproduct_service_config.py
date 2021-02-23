@@ -13,7 +13,7 @@ from permissions_query import PermissionsQuery
 from service_config import ServiceConfig
 from service_lib.database import DatabaseEngine
 
-from wmts_utils import get_wmts_layer_data
+from wmts_utils import get_wmts_layer_data, get_wms_layer_data
 
 
 class DataproductServiceConfig(ServiceConfig):
@@ -547,8 +547,10 @@ class DataproductServiceConfig(ServiceConfig):
             url = data_source.connection
             layername = data_set.data_set_name
             conn = "wms:%s#%s" % (url, layername)
+            data = get_wms_layer_data(self.logger, url, layername)
             metadata = OrderedDict()
             metadata['datatype'] = 'raster'
+            metadata['abstract'] = data.get("abstract", "")
             metadata['external_layer'] = {
                 "name": conn,
                 "type": "wms",
