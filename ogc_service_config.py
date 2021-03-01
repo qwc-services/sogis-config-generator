@@ -140,8 +140,9 @@ class OGCServiceConfig(ServiceConfig):
                 wms.root_layer, False
             )
             # use separate QGIS project for printing
-            wms_service['print_url'] = urljoin(
-                default_qgis_server_url, "%s_print" % wms.name
+            wms_service['print_url'] = cfg_wms.get(
+                'print_url', urljoin(default_qgis_server_url,
+                                     "%s_print" % wms.name)
             )
             wms_service['print_templates'] = self.print_templates(session)
             wms_service['internal_print_layers'] = self.print_layers(session)
