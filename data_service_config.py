@@ -102,8 +102,14 @@ class DataServiceConfig(ServiceConfig):
             data_set = data_set_view.data_set
             data_source = data_set.data_source
 
-            # database connection URL
+            # database connection URLs
             conn_str = data_set.data_source.connection
+            # use separate service for write access
+            # by appending suffix to service name, e.g.
+            #   postgresql:///?service=sogis_services
+            #     ->
+            #   postgresql:///?service=sogis_services_write
+            conn_write_str = "%s_write" % conn_str
 
             # parse schema and table name
             data_set_name = data_set.data_set_name
@@ -153,6 +159,7 @@ class DataServiceConfig(ServiceConfig):
             dataset = OrderedDict()
             dataset['name'] = dataset_edit.name
             dataset['db_url'] = conn_str
+            dataset['db_write_url'] = conn_write_str
             dataset['schema'] = schema
             dataset['table_name'] = table_name
             dataset['primary_key'] = primary_key or pgmeta.get('primary_key')
