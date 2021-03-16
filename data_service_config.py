@@ -171,6 +171,7 @@ class DataServiceConfig(ServiceConfig):
                 geometry['geometry_column'] = pgmeta['geometry_column']
                 geometry['geometry_type'] = pgmeta['geometry_type']
                 geometry['srid'] = pgmeta['srid']
+                geometry['allow_null'] = True
 
                 dataset['geometry'] = geometry
 
