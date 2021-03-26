@@ -175,14 +175,16 @@ class FeatureInfoServiceConfig(ServiceConfig):
                             )
                             json_attrs = json_config.get('json_attrs', [])
 
+                            # collect active JSON attributes
                             json_aliases = []
                             for json_attr in json_attrs:
-                                # NOTE: use ordered keys
-                                json_alias = OrderedDict()
-                                json_alias['name'] = json_attr.get('name')
-                                json_alias['alias'] = json_attr.get('alias') \
-                                    or json_attr.get('name')
-                                json_aliases.append(json_alias)
+                                if json_attr.get('active', False):
+                                    # NOTE: use ordered keys
+                                    json_alias = OrderedDict()
+                                    json_alias['name'] = json_attr.get('name')
+                                    json_alias['alias'] = json_attr.get('alias') \
+                                        or json_attr.get('name')
+                                    json_aliases.append(json_alias)
                     except Exception as e:
                         self.logger.warning(
                             "Could not parse '%s' value in layer '%s' as JSON:"
