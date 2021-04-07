@@ -354,6 +354,11 @@
                   "description": "WFS service name",
                   "type": "string"
                 },
+                "wfs_url": {
+                  "description": "Custom WFS URL if different from default_qgis_server_url",
+                  "type": "string",
+                  "format": "uri"
+                },
                 "online_resource": {
                   "description": "Custom OnlineResource shown in GetCapabilities",
                   "type": "string",

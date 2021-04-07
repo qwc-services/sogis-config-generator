@@ -268,8 +268,9 @@ class OGCServiceConfig(ServiceConfig):
             wfs_service = OrderedDict()
             wfs_service['name'] = wfs.name
             # use separate QGIS project
-            wfs_service['wfs_url'] = urljoin(
-                default_qgis_server_url, "%s_wfs" % wfs.name
+            wfs_service['wfs_url'] = cfg_wfs.get(
+                'wfs_url',
+                urljoin(default_qgis_server_url, "%s_wfs" % wfs.name)
             )
             # set any online resource
             wfs_service['online_resource'] = cfg_wfs.get('online_resource')
