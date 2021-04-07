@@ -303,71 +303,79 @@
         },
         "resources": {
           "description": "Additional config for generating OGC resources",
-          "wms_services": {
-            "title": "WMS services",
-            "type": "array",
-            "items": {
-              "title": "WMS service",
-              "description": "Additional config for WMS service",
-              "type": "object",
-              "properties": {
-                "name": {
-                  "description": "WMS service name",
-                  "type": "string"
-                },
-                "online_resources": {
-                  "description": "Custom OnlineResources shown in GetCapabilities",
-                  "type": "object",
-                  "properties": {
-                    "service": {
-                      "description": "Default public base URL for OnlineResources",
-                      "type": "string",
-                      "format": "uri"
-                    },
-                    "feature_info": {
-                      "description": "Public base URL for FeatureInfo OnlineResources",
-                      "type": "string",
-                      "format": "uri"
-                    },
-                    "legend": {
-                      "description": "Public base URL for Legend OnlineResources",
-                      "type": "string",
-                      "format": "uri"
+          "type": "object",
+          "properties": {
+            "wms_services": {
+              "title": "WMS services",
+              "type": "array",
+              "items": {
+                "title": "WMS service",
+                "description": "Additional config for WMS service",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "WMS service name",
+                    "type": "string"
+                  },
+                  "print_url": {
+                    "description": "Custom WMS URL for printing if different from default_qgis_server_url",
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "online_resources": {
+                    "description": "Custom OnlineResources shown in GetCapabilities",
+                    "type": "object",
+                    "properties": {
+                      "service": {
+                        "description": "Default public base URL for OnlineResources",
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      "feature_info": {
+                        "description": "Public base URL for FeatureInfo OnlineResources",
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      "legend": {
+                        "description": "Public base URL for Legend OnlineResources",
+                        "type": "string",
+                        "format": "uri"
+                      }
                     }
                   }
-                }
-              },
-              "required": [
-                "name"
-              ]
-            }
-          },
-          "wfs_services": {
-            "title": "WFS services",
-            "type": "array",
-            "items": {
-              "title": "WFS service",
-              "description": "Additional config for WFS service",
-              "type": "object",
-              "properties": {
-                "name": {
-                  "description": "WFS service name",
-                  "type": "string"
                 },
-                "wfs_url": {
-                  "description": "Custom WFS URL if different from default_qgis_server_url",
-                  "type": "string",
-                  "format": "uri"
+                "required": [
+                  "name"
+                ]
+              }
+            },
+            "wfs_services": {
+              "title": "WFS services",
+              "type": "array",
+              "items": {
+                "title": "WFS service",
+                "description": "Additional config for WFS service",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "WFS service name",
+                    "type": "string"
+                  },
+                  "wfs_url": {
+                    "description": "Custom WFS URL if different from default_qgis_server_url",
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "online_resource": {
+                    "description": "Custom OnlineResource shown in GetCapabilities",
+                    "type": "string",
+                    "format": "uri"
+                  }
                 },
-                "online_resource": {
-                  "description": "Custom OnlineResource shown in GetCapabilities",
-                  "type": "string",
-                  "format": "uri"
-                }
-              },
-              "required": [
-                "name"
-              ]
+                "required": [
+                  "name"
+                ]
+              }
             }
           }
         }
