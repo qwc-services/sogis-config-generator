@@ -198,7 +198,9 @@ class DataproductServiceConfig(ServiceConfig):
         # ignore WFS root layer
         query = query.filter(OWSLayer.gdi_oid != wfs_root_layer_id)
         for ows_layer in query.all():
-            metadata = self._dataproduct_metadata(ows_layer, session)
+            metadata, searchterms = self._dataproduct_metadata(
+                ows_layer, session
+            )
             if len(metadata) > 0:
                 dataproducts.append(metadata)
 
@@ -236,14 +238,20 @@ class DataproductServiceConfig(ServiceConfig):
             sublayers = []
             for group_layer in ows_layer.sub_layers:
                 sub_layer = group_layer.sub_layer
-                sublayers.append(sub_layer.name)
+                submetadata, subsearchterms = self._dataproduct_metadata(
+                    sub_layer, session
+                )
+                if submetadata:
+                    sublayers.append(sub_layer.name)
+                    if dataproduct_type == 'facadelayer':
+                        searchterms += subsearchterms
 
             if not sublayers:
                 self.logger.warning(
                     "Skipping ProductSet %s with empty sublayers"
                     % ows_layer.name
                 )
-                return metadata
+                return (metadata, searchterms)
         else:
             dataproduct_type = 'datasetview'
             # find matching DataSetView
@@ -260,7 +268,7 @@ class DataproductServiceConfig(ServiceConfig):
                             'abstract')
         except ObjectDeletedError as e:
             self.logger.error("%s: %s" % (ows_layer.name, e))
-            return metadata
+            return (metadata, searchterms)
 
         # qml
         qml = None
@@ -299,7 +307,7 @@ class DataproductServiceConfig(ServiceConfig):
             if v is not None:
                 filtered_metadata[k] = v
 
-        return filtered_metadata
+        return (filtered_metadata, searchterms)
 
     def _layer_display_infos(self, ows_layer, session):
         """Return theme item layer infos from ConfigDB.
