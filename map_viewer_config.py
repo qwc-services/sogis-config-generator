@@ -519,8 +519,10 @@ class MapViewerConfig(ServiceConfig):
             for group_layer in layer.sub_layers:
                 sublayer = group_layer.sub_layer
                 # recursively collect sublayer
+                subvisible = visibility and group_layer.layer_active
                 res = self.collect_layers(
-                    sublayer, opacity, visibility, layer_bbox, external_layers, theme_external_layers
+                    sublayer, opacity, subvisible, layer_bbox, external_layers,
+                    theme_external_layers
                 )
                 sublayers += res['layers']
                 drawing_order += res['drawing_order']
