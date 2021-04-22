@@ -242,7 +242,10 @@ class DataproductServiceConfig(ServiceConfig):
                     sub_layer, session
                 )
                 if submetadata:
-                    sublayers.append(sub_layer.name)
+                    sublayer = OrderedDict()
+                    sublayer['identifier'] = sub_layer.name
+                    sublayer['visibility'] = group_layer.layer_active
+                    sublayers.append(sublayer)
                     if dataproduct_type == 'facadelayer':
                         searchterms += subsearchterms
 
@@ -314,14 +317,6 @@ class DataproductServiceConfig(ServiceConfig):
 
         :param obj ows_layer: Group or Data layer object
         """
-        visible = True
-
-        # get visibility from parent group_layer
-        parents = ows_layer.parents
-        if len(parents) > 0:
-            group_layer = parents[0]
-            visible = group_layer.layer_active
-
         queryable = self._layer_queryable(ows_layer)
         display_field = None
         if ows_layer.type == 'data':
@@ -339,7 +334,6 @@ class DataproductServiceConfig(ServiceConfig):
         )
 
         metadata = OrderedDict()
-        metadata['visibility'] = visible
         metadata['queryable'] = queryable
         metadata['displayField'] = display_field
         metadata['opacity'] = opacity
