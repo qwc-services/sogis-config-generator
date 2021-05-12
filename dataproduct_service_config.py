@@ -1,3 +1,4 @@
+import base64
 from collections import OrderedDict
 import json
 import os
@@ -21,6 +22,9 @@ class DataproductServiceConfig(ServiceConfig):
 
     Generate Dataproduct service config and permissions.
     """
+
+    # relative subdir for uploaded QGS symbols
+    SYMBOLS_SUB_DIR = 'symbols'
 
     def __init__(self, config_models, generator_config, logger):
         """Constructor
@@ -821,9 +825,9 @@ class DataproductServiceConfig(ServiceConfig):
             root = ElementTree.fromstring(qml)
 
             # embed symbols
-            self._embed_qml_symbols(root, 'SvgMarker', 'name')
-            self._embed_qml_symbols(root, 'SVGFill', 'svgFile')
-            self._embed_qml_symbols(root, 'RasterFill', 'imageFile')
+            self._embed_qml_symbols(root, 'SvgMarker', 'name', identifier)
+            self._embed_qml_symbols(root, 'SVGFill', 'svgFile', identifier)
+            self._embed_qml_symbols(root, 'RasterFill', 'imageFile', identifier)
 
             # return updated QML
             qml = ElementTree.tostring(
@@ -837,12 +841,13 @@ class DataproductServiceConfig(ServiceConfig):
             )
             return qml
 
-    def _embed_qml_symbols(self, root, layer_class, prop_key):
+    def _embed_qml_symbols(self, root, layer_class, prop_key, identifier):
         """Embed symbol resources as base64 in QML.
 
         :param xml.etree.ElementTree.Element root: XML root node
         :param str layer_class: Symbol layer class
         :param str prop_key: Symbol layer prop key for symbol path
+        :param str identifer: Dataproduct ID
         """
         qgs_resources_dir = self.service_config.get('qgs_resources_dir', '')
         for svgprop in root.findall(".//layer[@class='%s']/prop[@k='%s']" %
@@ -852,7 +857,8 @@ class DataproductServiceConfig(ServiceConfig):
                 os.path.join(qgs_resources_dir, symbol_path)
             )
 
-            # NOTE: assume symbols not included in ZIP are default symbols
+            # NOTE: assume symbols not in SYMBOLS_SUB_DIR are default symbols
+            #       (not included in uploaded ZIP)
             if os.path.exists(path):
                 try:
                     # read symbol data and convert to base64
@@ -861,11 +867,24 @@ class DataproductServiceConfig(ServiceConfig):
 
                     # embed symbol in QML
                     svgprop.set('v', "base64:%s" % symbol_data.decode())
-                    self.logger.info("Embed symbol in QML: %s" % symbol_path)
+                    self.logger.info(
+                        "Embed QML symbol for dataproduct '%s': %s"
+                        % (identifier, symbol_path)
+                    )
                 except Exception as e:
                     self.logger.warning(
-                        "Could not embed QML symbol %s:\n%s" % (symbol_path, e)
+                        "Could not embed QML symbol %s for dataproduct '%s':\n"
+                        "%s"
+                        % (symbol_path, identifier, e)
                     )
+            else:
+                if symbol_path.startswith(self.SYMBOLS_SUB_DIR):
+                    self.logger.warning(
+                        "Could not find QML symbol %s for dataproduct '%s':\n"
+                        "No such file: '%s'"
+                        % (symbol_path, identifier, path)
+                    )
+                # no warning for default symbols
 
     def precache_resources(self, session):
         """Precache some resources using eager loaded relations to reduce the
