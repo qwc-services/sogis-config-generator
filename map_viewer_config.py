@@ -232,8 +232,9 @@ class MapViewerConfig(ServiceConfig):
 
         # print layouts and labels
         default_print_layout = cfg_qwc2_themes.get('default_print_layout')
+        legend_print_layout_suffix = cfg_qwc2_themes.get('legend_print_layout_suffix')
         print_layouts, print_label_config = self.print_layouts(
-            default_print_layout, session
+            default_print_layout, legend_print_layout_suffix, session
         )
 
         # search providers
@@ -392,18 +393,35 @@ class MapViewerConfig(ServiceConfig):
 
         return item
 
-    def print_layouts(self, default_print_layout, session):
+    def print_layouts(self, default_print_layout, legend_print_layout_suffix,
+                      session):
         """Return QWC2 print layouts and labels from ConfigDB.
 
         :param str default_print_layout: Name of default print layout
+        :param str legend_print_layout_suffix: Suffix for marking print layouts
+                                               with additional legend
         :param Session session: DB session
         """
         print_layouts = []
         print_label_config = {}
+        legend_layouts = {}
 
         TemplateQGIS = self.config_models.model('template_qgis')
         query = session.query(TemplateQGIS).order_by(TemplateQGIS.name)
         for template in query.all():
+            if (
+                legend_print_layout_suffix
+                and template.name.endswith(legend_print_layout_suffix)
+            ):
+                # extract corresponding layout from name
+                # e.g. "A4 portrait (with legend)" => "A4 portrait"
+                base_layout_name = template.name[
+                    0:-len(legend_print_layout_suffix)
+                ]
+                legend_layouts[base_layout_name] = template.name
+                # skip print layout with legend
+                continue
+
             # NOTE: use ordered keys
             print_layout = OrderedDict()
             print_layout['name'] = template.name
@@ -432,6 +450,12 @@ class MapViewerConfig(ServiceConfig):
             print_layout['default'] = (template.name == default_print_layout)
 
             print_layouts.append(print_layout)
+
+        for print_layout in print_layouts:
+            legend_layout = legend_layouts.get(print_layout['name'])
+            if legend_layout:
+                # add config for print layout with legend
+                print_layout['legendLayout'] = legend_layout
 
         return print_layouts, print_label_config
 

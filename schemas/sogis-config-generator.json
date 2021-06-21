@@ -230,6 +230,10 @@
                   "description": "Name of default print layout. Example: 'A4 hoch'",
                   "type": "string"
                 },
+                "legend_print_layout_suffix": {
+                  "description": "Suffix for print layout name to mark it as additional layout with legend. Example: ' (mit Legende)' for 'A4 hoch (mit Legende)'",
+                  "type": "string"
+                },
                 "default_scales": {
                   "description": "Default map scales. Example: [4000000, 2000000, ..., 250, 100]",
                   "type": "array",
