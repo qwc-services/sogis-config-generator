@@ -49,10 +49,11 @@ class MapViewerConfig(ServiceConfig):
         'MULTIPOLYGON': 'Polygon'
     }
 
-    def __init__(self, config_models, logger):
+    def __init__(self, config_models, metadata_reader, logger):
         """Constructor
 
         :param ConfigModels config_models: Helper for ORM models
+        :param MetadataReader metadata_reader: Metadata reader
         :param Logger logger: Logger
         """
         super().__init__(
@@ -62,6 +63,7 @@ class MapViewerConfig(ServiceConfig):
         )
 
         self.config_models = config_models
+        self.metadata_reader = metadata_reader
         self.permissions_query = PermissionsQuery(config_models, logger)
 
     def config(self, service_config):
@@ -589,6 +591,11 @@ class MapViewerConfig(ServiceConfig):
                 item_layer['displayField'] = display_field
             item_layer['opacity'] = opacity
             item_layer['bbox'] = layer_bbox
+
+            # metadata
+            metadata = self.metadata_reader.layer_html_metadata(layer.name)
+            if metadata:
+                item_layer['metadata'] = metadata
 
             drawing_order.append(layer.name)
 

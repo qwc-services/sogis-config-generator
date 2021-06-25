@@ -21,6 +21,7 @@ from ogc_service_config import OGCServiceConfig
 from print_service_config import PrintServiceConfig
 from search_service_config import SearchServiceConfig
 from permissions_config import PermissionsConfig
+from metadata_reader import MetadataReader
 from qgs_writer import QGSWriter
 
 
@@ -80,6 +81,12 @@ class ConfigGenerator():
             self.logger.error(msg)
             raise Exception(msg)
 
+        # load metadata for layers
+        metadata_reader = MetadataReader(
+            self.config.get('metadata', {}), self.logger
+        )
+        metadata_reader.load_metadata()
+
         # create service config handlers
         self.config_handler = {
             'ogc': OGCServiceConfig(
@@ -91,9 +98,11 @@ class ConfigGenerator():
             'legend': LegendServiceConfig(
                 self.config_models, generator_config, self.logger
             ),
-            'mapViewer': MapViewerConfig(self.config_models, self.logger),
+            'mapViewer': MapViewerConfig(
+                self.config_models, metadata_reader, self.logger
+            ),
             'dataproduct': DataproductServiceConfig(
-                self.config_models, generator_config, self.logger
+                self.config_models, metadata_reader, self.logger
             ),
             'print': PrintServiceConfig(self.config_models, self.logger),
             'search': SearchServiceConfig(self.config_models, self.logger),

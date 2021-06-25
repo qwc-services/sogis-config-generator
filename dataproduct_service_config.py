@@ -26,10 +26,11 @@ class DataproductServiceConfig(ServiceConfig):
     # relative subdir for uploaded QGS symbols
     SYMBOLS_SUB_DIR = 'symbols'
 
-    def __init__(self, config_models, generator_config, logger):
+    def __init__(self, config_models, metadata_reader, logger):
         """Constructor
 
         :param ConfigModels config_models: Helper for ORM models
+        :param MetadataReader metadata_reader: Metadata reader
         :param Logger logger: Logger
         """
         super().__init__(
@@ -39,7 +40,7 @@ class DataproductServiceConfig(ServiceConfig):
         )
 
         self.config_models = config_models
-        self.generator_config = generator_config
+        self.metadata_reader = metadata_reader
         self.permissions_query = PermissionsQuery(config_models, logger)
         self.db_engine = DatabaseEngine()
 
@@ -307,6 +308,11 @@ class DataproductServiceConfig(ServiceConfig):
                 self._layer_display_infos(ows_layer, session))
 
         metadata.update(datasource)
+
+        # metadata from MetaDB
+        layer_metadata = self.metadata_reader.layer_html_metadata(ows_layer.name)
+        if layer_metadata:
+            metadata['metadata'] = layer_metadata
 
         # Filter null entries
         filtered_metadata = OrderedDict()

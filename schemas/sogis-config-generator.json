@@ -98,6 +98,52 @@
       "required": [
         "project_output_dir"
       ]
+    },
+    "metadata": {
+      "title": "Config options for metadata from MetaDB",
+      "type": "object",
+      "properties": {
+        "db_url": {
+          "description": "Connection URL for MetaDB database. Example: postgresql:///?service=metadb",
+          "type": "string",
+          "format": "uri"
+        },
+        "layers_sql": {
+          "description": "SQL for querying all layers",
+          "type": "string"
+        },
+        "layer_dataproducts_sql": {
+          "description": "SQL for querying dataproducts of a layer",
+          "type": "string"
+        },
+        "metadata_templates": {
+          "description": "Templates for metadata entries added to service configs",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "description": "Label for metadata entry",
+                "type": "string"
+              },
+              "template": {
+                "description": "HTML template for metadata content",
+                "type": "string"
+              }
+            },
+            "required": [
+              "label",
+              "template"
+            ]
+          }
+        }
+      },
+      "required": [
+        "db_url",
+        "layers_sql",
+        "layer_dataproducts_sql",
+        "metadata_templates"
+      ]
     }
   },
   "required": [
