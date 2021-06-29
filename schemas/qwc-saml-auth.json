@@ -32,6 +32,10 @@
         "group_attr": {
           "description": "Attribute name with group information. Example: department_qualified",
           "type": "string"
+        },
+        "ip_network": {
+          "description": "Network mask of internal network. Example: 10.36.0.0/16",
+          "type": "string"
         }
       },
       "required": []
