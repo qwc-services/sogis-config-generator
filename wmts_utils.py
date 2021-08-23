@@ -5,11 +5,13 @@ from qwc_services_core.cache import ExpiringDict
 
 capabilites_cache = ExpiringDict()
 
+
 def getFirstElementByTagName(parent, name):
     try:
         return parent.getElementsByTagName(name)[0]
     except:
         return None
+
 
 def get_wms_layer_data(logger, capabilites_url, layer_name):
 
@@ -27,6 +29,18 @@ def get_wms_layer_data(logger, capabilites_url, layer_name):
 
     doc = parseString(capabilites_cache.lookup(capabilites_url)["value"])
     contents = getFirstElementByTagName(doc, "WMS_Capabilities")
+
+    layer_infos = {
+        "abstract": "",
+        "infoFormats": []
+    }
+
+    capability = getFirstElementByTagName(contents, "Capability")
+    feat_info = getFirstElementByTagName(capability, "GetFeatureInfo")
+    if feat_info:
+        for format in feat_info.getElementsByTagName("Format"):
+            layer_infos['infoFormats'].append(format.firstChild.nodeValue)
+
     layers = contents.getElementsByTagName("Layer")
     targetLayer = None
     for layer in layers:
@@ -36,14 +50,12 @@ def get_wms_layer_data(logger, capabilites_url, layer_name):
             break
 
     if not targetLayer:
-        return {
-            "abstract": ""
-        }
+        return layer_infos
 
     abstract = getFirstElementByTagName(targetLayer, "Abstract")
-    return {
-        "abstract": abstract.firstChild.nodeValue if abstract else ""
-    }
+    layer_infos['abstract'] = abstract.firstChild.nodeValue if abstract else ""
+
+    return layer_infos
 
 
 def get_wmts_layer_data(logger, capabilites_url, layer_name):

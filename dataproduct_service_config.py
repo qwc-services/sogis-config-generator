@@ -568,7 +568,7 @@ class DataproductServiceConfig(ServiceConfig):
                 "type": "wms",
                 "url": url,
                 "params": {"LAYERS": layername},
-                "infoFormats": ["text/plain"]
+                "infoFormats": data.get("infoFormats", ["text/plain"])
             }
         elif data_source.connection_type == 'wmts':
             # External WMTS
