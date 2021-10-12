@@ -32,7 +32,8 @@ def get_wms_layer_data(logger, capabilites_url, layer_name):
 
     layer_infos = {
         "abstract": "",
-        "infoFormats": []
+        "infoFormats": [],
+        "queryable": True
     }
 
     capability = getFirstElementByTagName(contents, "Capability")
@@ -51,6 +52,9 @@ def get_wms_layer_data(logger, capabilites_url, layer_name):
 
     if not targetLayer:
         return layer_infos
+
+    if targetLayer.getAttribute("queryable") == "0":
+        layer_infos["queryable"] = False
 
     abstract = getFirstElementByTagName(targetLayer, "Abstract")
     layer_infos['abstract'] = abstract.firstChild.nodeValue if abstract else ""

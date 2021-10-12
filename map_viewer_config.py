@@ -636,6 +636,7 @@ class MapViewerConfig(ServiceConfig):
                 "url": url,
                 "params": {"LAYERS": layername},
                 "infoFormats": ["text/plain"],
+                "queryLayers": [layername] if data["queryable"] else [],
                 "abstract": data["abstract"]
             }
         elif conn_type == "wmts":
