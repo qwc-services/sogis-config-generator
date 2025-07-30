@@ -489,7 +489,8 @@ class MapViewerConfig(ServiceConfig):
         # NOTE: use ordered keys
         cfg = OrderedDict()
         cfg['provider'] = 'fulltext'
-        cfg['default'] = searches
+        cfg['params'] = OrderedDict()
+        cfg['params']['default'] = searches
 
         return cfg
 
