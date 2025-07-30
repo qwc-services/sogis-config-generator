@@ -488,7 +488,7 @@ class MapViewerConfig(ServiceConfig):
 
         # NOTE: use ordered keys
         cfg = OrderedDict()
-        cfg['provider'] = 'solr'
+        cfg['provider'] = 'fulltext'
         cfg['default'] = searches
 
         return cfg
