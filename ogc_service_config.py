@@ -521,6 +521,8 @@ class OGCServiceConfig(ServiceConfig):
                             permitted_ids | public_ids
                         )
 
+                # queryable permission always True
+                wms_layer['queryable'] = True
                 # add layer
                 wms_layers.append(wms_layer)
 
