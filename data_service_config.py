@@ -121,9 +121,6 @@ class DataServiceConfig(ServiceConfig):
                 schema = 'public'
                 table_name = data_set_name
 
-            # primary key if view
-            primary_key = data_set.primary_key
-
             # geometry column if multiple
             geometry_column = data_set_view.geometry_column
 
@@ -136,6 +133,9 @@ class DataServiceConfig(ServiceConfig):
             if not pgmeta:
                 # could not get PostGIS metadata
                 continue
+
+            # primary key
+            primary_key = data_set.primary_key or pgmeta.get('primary_key')
 
             # get attributes
             attributes = []
@@ -155,6 +155,20 @@ class DataServiceConfig(ServiceConfig):
 
                 attributes.append(field)
 
+            # Also add field definition for primary key
+            if primary_key:
+                # get data type and constraints
+                attr_meta = self.permissions_query.attribute_metadata(
+                    conn_str, schema, table_name, primary_key
+                )
+
+                # NOTE: use ordered keys
+                field = OrderedDict()
+                field['name'] = primary_key
+                field['data_type'] = attr_meta['data_type']
+
+                attributes.append(field)
+
             # NOTE: use ordered keys
             dataset = OrderedDict()
             dataset['name'] = dataset_edit.name
@@ -162,7 +176,7 @@ class DataServiceConfig(ServiceConfig):
             dataset['db_write_url'] = conn_write_str
             dataset['schema'] = schema
             dataset['table_name'] = table_name
-            dataset['primary_key'] = primary_key or pgmeta.get('primary_key')
+            dataset['primary_key'] = primary_key
             dataset['fields'] = attributes
 
             if pgmeta.get('geometry_column'):
