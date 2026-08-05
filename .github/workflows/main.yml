@@ -1,10 +1,29 @@
-name: build
+name: Run tests and build
 
-on: [push]
+on:
+  pull_request:
+  push:
+    branches:
+      - '**'
+    tags:
+      - 'v*'
 
 jobs:
 
+    test:
+      runs-on: ubuntu-latest
+      steps:
+
+      - uses: actions/checkout@master
+
+      - name: Validate schema
+        run: |
+          python -m pip install check-jsonschema
+          check-jsonschema --check-metaschema schemas/sogis-config-generator.json
+
     build:
+      if: github.ref_type == 'tag'
+      needs: test
       runs-on: ubuntu-latest
       steps:
 
@@ -13,17 +32,21 @@ jobs:
       - name: Get version tag
         id: get_tag
         run: |
-          if [ ${{ startsWith(github.ref, 'refs/tags/') }} = true ]; then
-            echo "tag=latest,${GITHUB_REF:10}" >>$GITHUB_OUTPUT
+          if [ ${{ endsWith(github.ref, '-lts') }} = true ]; then
+            echo "tag=latest-lts,latest-${GITHUB_REF:11:4}-lts,${GITHUB_REF:10}" >>$GITHUB_OUTPUT
+            echo "base_tag=latest-${GITHUB_REF:11:4}-lts" >>$GITHUB_OUTPUT
           else
-            echo "tag=latest" >>$GITHUB_OUTPUT
+            echo "tag=latest,${GITHUB_REF:10}" >>$GITHUB_OUTPUT
+            echo "base_tag=latest" >>$GITHUB_OUTPUT
           fi
 
-      - name: Publish to Registry
+      - name: Build and publish docker image
         uses: elgohr/Publish-Docker-Github-Action@v5
-        if: github.event_name != 'pull_request'
+        env:
+          BASE_TAG: ${{ steps.get_tag.outputs.base_tag }}
         with:
           name: sourcepole/${{ github.event.repository.name }}
           username: ${{ secrets.DOCKER_HUB_USER }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           tags: "${{ steps.get_tag.outputs.tag }}"
+          buildargs: BASE_TAG
