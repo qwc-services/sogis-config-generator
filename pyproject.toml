@@ -1,6 +1,6 @@
 [project]
 name = "sogis-config-generator"
-version = "v2026.08.04"
+version = "v2026.08.05"
 description = "SO!MAP Config Generator"
 readme = "README.md"
 requires-python = ">=3.10"
