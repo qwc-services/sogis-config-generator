@@ -143,9 +143,9 @@ qwc-services-core==1.1.7 \
     --hash=sha256:7d15867889c3e2f3eb4fff95106957c807d499703f9e555d6e0f7de6b1f65265 \
     --hash=sha256:febf24508d0f0c2c937f5178db944a38e2bbe74e1ce339e3f645ebc1d63dadf3
     # via sogis-config-generator
-requests==2.23.0 \
-    --hash=sha256:43999036bfa82904b6af1d99e4882b560e5e2c68e5c4b0aa03b655f3d7d73fee \
-    --hash=sha256:b3f43d496c6daba4493e7c431722aeb7dbc6288f52a6e04e7b6023b0247817e6
+requests==2.33.0 \
+    --hash=sha256:3324635456fa185245e24865e810cecec7b4caf933d7eb133dcde67d48cee69b \
+    --hash=sha256:c7ebc5e8b0f21837386ad0e1c8fe8b829fa5f544d8df3b2253bff14ef29d7652
     # via sogis-config-generator
 setuptools==83.0.0 \
     --hash=sha256:025bccbbf0fa05b6192bc64ae1e7b16e001fd6d6d4d5de03c97b1c1ade523bef \
