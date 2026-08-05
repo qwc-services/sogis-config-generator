@@ -114,12 +114,6 @@ class ConfigGenerator():
                 'https://github.com/qwc-services/sogis-agdi/raw/master/schemas/sogis-agdi.json',
                 self.logger
             ),
-            'saml-auth': ServiceConfig(
-                'samlAuth',
-                'https://github.com/qwc-services/sogis-config-generator/raw/master/schemas/qwc-saml-auth.json',
-                self.logger,
-                'saml-auth'
-            ),
             'ccc': ServiceConfig(
                 'ccc',
                 'https://github.com/qwc-services/'
