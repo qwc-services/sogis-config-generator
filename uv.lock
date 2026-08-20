@@ -234,20 +234,20 @@ wheels = [
 
 [[package]]
 name = "python-dotenv"
-version = "1.2.2"
+version = "1.2.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/82/ed/0301aeeac3e5353ef3d94b6ec08bbcabd04a72018415dcb29e588514bba8/python_dotenv-1.2.2.tar.gz", hash = "sha256:2c371a91fbd7ba082c2c1dc1f8bf89ca22564a087c2c287cd9b662adde799cf3", size = 50135, upload-time = "2026-03-01T16:00:26.196Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6a/53/ed9d74092561d4b01a2ef1349d52cdbc135e526c245f366b089cfca6de49/python_dotenv-1.2.3.tar.gz", hash = "sha256:a20a594dabeaa385725aa239d5244871c143ecb356add8a20fcf23773a6c3a35", size = 58945, upload-time = "2026-08-16T16:54:54.067Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0b/d7/1959b9648791274998a9c3526f6d0ec8fd2233e4d4acce81bbae76b44b2a/python_dotenv-1.2.2-py3-none-any.whl", hash = "sha256:1d8214789a24de455a8b8bd8ae6fe3c6b69a5e3d64aa8a8e5d68e694bbcb285a", size = 22101, upload-time = "2026-03-01T16:00:25.09Z" },
+    { url = "https://files.pythonhosted.org/packages/0d/17/c5c6b53ddc18f297992099b3d9ec16c855c0ccc83263a21fe4d1c625ec6c/python_dotenv-1.2.3-py3-none-any.whl", hash = "sha256:904552145e8bfed22162c09dab1c2b9b54fefa7b23ba780f4f26ca0316b0f0d9", size = 22780, upload-time = "2026-08-16T16:54:52.473Z" },
 ]
 
 [[package]]
 name = "qwc-services-core"
-version = "1.1.7"
+version = "1.7.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/de/61/0616a2e6802aebd764f672bad7b0eb4586840e1002634c8127a2845283a1/qwc-services-core-1.1.7.tar.gz", hash = "sha256:7d15867889c3e2f3eb4fff95106957c807d499703f9e555d6e0f7de6b1f65265", size = 15144, upload-time = "2021-03-02T17:36:28.486Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/14/8b/9d375032431e90c2547417ea89304e0d0d84e73523b7236826a93885eb93/qwc_services_core-1.7.0.tar.gz", hash = "sha256:fd0a01940643466967f7e555b6ffbe4a06974b2f188e8105db03709dd592182a", size = 18476, upload-time = "2026-08-20T14:47:41.783Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c3/24/2d4b868bff5a9663cff242f6bbdebeebeb954b6d44768913bdd798747dce/qwc_services_core-1.1.7-py3-none-any.whl", hash = "sha256:febf24508d0f0c2c937f5178db944a38e2bbe74e1ce339e3f645ebc1d63dadf3", size = 15099, upload-time = "2021-03-02T17:36:26.546Z" },
+    { url = "https://files.pythonhosted.org/packages/c0/9f/a77b4f1652df3e69b5362f4fce5c698e8704e1d5cf4d0126cf6258df43c1/qwc_services_core-1.7.0-py3-none-any.whl", hash = "sha256:e2a8dc68cdeb329ef76525100e3434787c504414b4c836976053d44fb42934e1", size = 18976, upload-time = "2026-08-20T14:47:40.732Z" },
 ]
 
 [[package]]
@@ -267,11 +267,11 @@ wheels = [
 
 [[package]]
 name = "setuptools"
-version = "83.0.0"
+version = "84.0.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/34/26/f5d29e25ffdb535afef2d35cdb55b325298f96debd670da4c325e08d70f4/setuptools-83.0.0.tar.gz", hash = "sha256:025bccbbf0fa05b6192bc64ae1e7b16e001fd6d6d4d5de03c97b1c1ade523bef", size = 1154254, upload-time = "2026-07-04T15:31:22.699Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6d/44/f5da03a8ef95d369145c5bb53050e7877c9f3d312e128605fd9504829143/setuptools-84.0.0.tar.gz", hash = "sha256:f4695c21257f0d9b537ec2692c941d02ee143b7cc1276941349a546573b2ef73", size = 1168449, upload-time = "2026-08-08T18:27:58.365Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5d/40/e1e72872c6354b306daef1703549e8e83b4d43cfea356311bf722a043752/setuptools-83.0.0-py3-none-any.whl", hash = "sha256:29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3", size = 1008090, upload-time = "2026-07-04T15:31:20.885Z" },
+    { url = "https://files.pythonhosted.org/packages/95/9c/c510029fc6ef33a6275cd2c5d3cecd6613dfd6aa401d57c54f1c18852ccf/setuptools-84.0.0-py3-none-any.whl", hash = "sha256:51a52592b3b99e102b609654876bd65f19f999935166d1352678931132b0c670", size = 818216, upload-time = "2026-08-08T18:27:56.719Z" },
 ]
 
 [[package]]
@@ -314,7 +314,7 @@ requires-dist = [
     { name = "jsonschema", specifier = "~=3.2.0" },
     { name = "markupsafe", specifier = "~=2.0.1" },
     { name = "psycopg2-binary", specifier = "~=2.9.2" },
-    { name = "qwc-services-core", specifier = "~=1.1.1" },
+    { name = "qwc-services-core", specifier = "~=1.7.0" },
     { name = "requests", specifier = "~=2.23.0" },
     { name = "sqlalchemy", specifier = "~=1.3.5" },
     { name = "werkzeug", specifier = "~=2.0.3" },

@@ -139,17 +139,17 @@ pyrsistent==0.20.0 \
     --hash=sha256:e78d0c7c1e99a4a45c99143900ea0546025e41bb59ebc10182e947cf1ece9174 \
     --hash=sha256:f5ac696f02b3fc01a710427585c855f65cd9c640e14f52abe52020722bb4906b
     # via jsonschema
-qwc-services-core==1.1.7 \
-    --hash=sha256:7d15867889c3e2f3eb4fff95106957c807d499703f9e555d6e0f7de6b1f65265 \
-    --hash=sha256:febf24508d0f0c2c937f5178db944a38e2bbe74e1ce339e3f645ebc1d63dadf3
+qwc-services-core==1.7.0 \
+    --hash=sha256:e2a8dc68cdeb329ef76525100e3434787c504414b4c836976053d44fb42934e1 \
+    --hash=sha256:fd0a01940643466967f7e555b6ffbe4a06974b2f188e8105db03709dd592182a
     # via sogis-config-generator
 requests==2.23.0 \
     --hash=sha256:43999036bfa82904b6af1d99e4882b560e5e2c68e5c4b0aa03b655f3d7d73fee \
     --hash=sha256:b3f43d496c6daba4493e7c431722aeb7dbc6288f52a6e04e7b6023b0247817e6
     # via sogis-config-generator
-setuptools==83.0.0 \
-    --hash=sha256:025bccbbf0fa05b6192bc64ae1e7b16e001fd6d6d4d5de03c97b1c1ade523bef \
-    --hash=sha256:29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3
+setuptools==84.0.0 \
+    --hash=sha256:51a52592b3b99e102b609654876bd65f19f999935166d1352678931132b0c670 \
+    --hash=sha256:f4695c21257f0d9b537ec2692c941d02ee143b7cc1276941349a546573b2ef73
     # via jsonschema
 six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
