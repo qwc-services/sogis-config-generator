@@ -139,9 +139,9 @@ pyrsistent==0.20.0 \
     --hash=sha256:e78d0c7c1e99a4a45c99143900ea0546025e41bb59ebc10182e947cf1ece9174 \
     --hash=sha256:f5ac696f02b3fc01a710427585c855f65cd9c640e14f52abe52020722bb4906b
     # via jsonschema
-qwc-services-core==1.7.0 \
-    --hash=sha256:e2a8dc68cdeb329ef76525100e3434787c504414b4c836976053d44fb42934e1 \
-    --hash=sha256:fd0a01940643466967f7e555b6ffbe4a06974b2f188e8105db03709dd592182a
+qwc-services-core==1.7.1 \
+    --hash=sha256:a356220f7c1eaca80a64cfa837a3cdd41d99d6ee1fe3e3a69511b182687db7f0 \
+    --hash=sha256:c01b0d25770e6f34006a56b70784eaeef4d724f2d77252b2ac4b213c6f97a364
     # via sogis-config-generator
 requests==2.23.0 \
     --hash=sha256:43999036bfa82904b6af1d99e4882b560e5e2c68e5c4b0aa03b655f3d7d73fee \
